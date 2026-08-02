@@ -1,0 +1,14 @@
+[Unit]
+Description=Fetch runtime config and prepare the gsa_opportunities app (roles/db/migrations)
+After=network-online.target postgresql.service redis-server.service
+Wants=network-online.target
+Before=gunicorn.service celery-worker.service celery-beat.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+ExecStart=/opt/app/bin/bootstrap.sh
+
+[Install]
+WantedBy=multi-user.target

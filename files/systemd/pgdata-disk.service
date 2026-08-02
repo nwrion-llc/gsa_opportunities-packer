@@ -1,0 +1,14 @@
+[Unit]
+# The "16" here must match variables.pkr.hcl's postgres_version default -
+# systemd unit files can't read Packer template variables.
+Description=Mount the persistent pgdata disk and point Postgres at it
+After=local-fs.target
+Before=postgresql@16-main.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/app/bin/pgdata-disk.sh
+
+[Install]
+WantedBy=multi-user.target

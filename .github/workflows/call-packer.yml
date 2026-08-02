@@ -1,0 +1,76 @@
+name: Packer
+
+on:
+  workflow_call:
+    inputs:
+      deploy:
+        description: 'Whether Packer should build and publish the image instead of just validating'
+        required: true
+        type: boolean
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Packer
+    runs-on: ubuntu-latest
+    environment: prod
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v7
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_CI_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Install Packer CLI
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: latest
+
+      - name: Install rsync and shellcheck
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends rsync shellcheck
+
+      - name: Run checks
+        run: make check
+
+      - name: Packer init
+        run: make init
+
+      - name: Run Packer build
+        if: ${{ inputs.deploy }}
+        run: make build PROJECT_ID=${{ vars.GCP_PROJECT_ID }}
+
+      - name: Run Packer validate
+        if: ${{ !inputs.deploy }}
+        run: make validate PROJECT_ID=${{ vars.GCP_PROJECT_ID }}
+
+      - name: Print success
+        if: ${{ success() }}
+        run: |
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+          ## :white_check_mark: Packer completed successfully
+
+          **Action:** ${{ inputs.deploy && 'packer build' || 'packer validate' }}
+          ${{ github.ref }}
+          EOF
+
+      - name: Print failure if failure
+        if: ${{ failure() }}
+        run: |
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+          ## :x: Packer failed
+          ${{ github.ref }}
+          EOF

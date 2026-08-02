@@ -1,0 +1,16 @@
+[Unit]
+Description=Celery beat - gsa_opportunities
+After=app-config.service
+Requires=app-config.service
+
+[Service]
+User=app
+Group=app
+WorkingDirectory=/opt/app/src
+EnvironmentFile=/opt/app/.env
+ExecStart=/opt/app/venv/bin/celery -A config beat -l info --pidfile=
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

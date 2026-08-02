@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn - gsa_opportunities
+After=app-config.service
+Requires=app-config.service
+
+[Service]
+User=app
+Group=app
+WorkingDirectory=/opt/app/src
+EnvironmentFile=/opt/app/.env
+ExecStart=/opt/app/venv/bin/gunicorn --config /opt/app/gunicorn.conf.py config.wsgi:application
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

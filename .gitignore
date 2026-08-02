@@ -1,0 +1,13 @@
+# Packer build scratch (the Makefile creates this directory itself before
+# any packer command, so it doesn't need to be tracked in git)
+.packer-app-src/
+packer_cache/
+crash.log
+packer-manifest.json
+
+# Local var overrides
+*.pkrvars.hcl
+!*.pkrvars.hcl.example
+
+# OS
+.DS_Store

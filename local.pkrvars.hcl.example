@@ -1,0 +1,5 @@
+project_id = "nwrion-management"
+
+# Uncomment / adjust any other variable from variables.pkr.hcl as needed:
+# zone = "us-west1-a"
+# machine_type = "e2-small"
