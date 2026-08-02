@@ -1,5 +1,6 @@
 # Single-environment project (no dev/prod split) — everything targets prod.
-PROJECT_ID ?= nwrion-management
+# 318224876302 is nwrion-management's numeric project number.
+PROJECT_ID ?= 318224876302
 VAR_FILE   ?=
 
 PACKER_VARS := $(if $(PROJECT_ID),-var project_id=$(PROJECT_ID))
@@ -20,7 +21,7 @@ help:
 	@echo "  clean         Remove build scratch state (.packer-app-src, crash logs, manifests)"
 	@echo "  tag-release TAG=v1.2.3   # Tag and push a release (triggers the Production workflow)"
 	@echo ""
-	@echo "PROJECT_ID defaults to nwrion-management. Override with PROJECT_ID=<gcp-project>"
+	@echo "PROJECT_ID defaults to 318224876302 (nwrion-management). Override with PROJECT_ID=<gcp-project>"
 	@echo "or point at a var file with VAR_FILE=<file>."
 	@echo ""
 	@echo "Usage: make validate"
