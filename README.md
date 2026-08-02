@@ -132,18 +132,18 @@ The `prod` GitHub Environment needs these repo secrets configured
   build/publish images)
 
 The workload identity pool/provider and CI service account (`pulumi-ci@nwrion-management.iam.gserviceaccount.com`)
-are provisioned by `../pulumi-infrastructure-gcp`'s `github_oidc.py` module,
-which trusts both this repo (`nwrion/gsa_opportunities-packer`) and
-`nwrion/pulumi-infrastructure-gcp` for the `prod` GitHub Environment. After
-running `pulumi up` there, read the actual values with:
+are provisioned by `../pulumi-infrastructure-gcp`'s `infra/github_oidc.py`
+module, which trusts both this repo (`nwrion-llc/gsa_opportunities-packer`)
+and `nwrion-llc/pulumi-infrastructure-gcp` for the `prod` GitHub Environment.
+After running `pulumi up` there, read the actual values with:
 
 ```
 cd ../pulumi-infrastructure-gcp
 make output
 ```
 
-`github_ci_service_account` → `GCP_CI_SERVICE_ACCOUNT`,
-`github_ci_wif_provider` → `GCP_WORKLOAD_IDENTITY_PROVIDER`.
+`github_oidc_service_account_email` → `GCP_CI_SERVICE_ACCOUNT`,
+`github_oidc_wif_provider` → `GCP_WORKLOAD_IDENTITY_PROVIDER`.
 
 `make tag-release TAG=v1.2.3` (must be run on `main`) tags and pushes,
 triggering the Release workflow.
