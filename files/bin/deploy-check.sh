@@ -76,5 +76,9 @@ sudo -u app -H bash -c "
   '${VENV}/python' manage.py collectstatic --noinput
 "
 
+# See bootstrap.sh for why - re-cloning wipes the permission fix each time.
+chmod o+x /opt/app "$APP_DIR"
+chmod -R o+rX "${APP_DIR}/staticfiles"
+
 systemctl restart gunicorn.service celery-worker.service celery-beat.service
 echo "deploy-check: redeployed and restarted at ${REMOTE_SHA}"

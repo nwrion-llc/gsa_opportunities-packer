@@ -109,3 +109,13 @@ sudo -u app -H bash -c "
   '${VENV}/python' manage.py migrate --noinput &&
   '${VENV}/python' manage.py collectstatic --noinput
 "
+
+# nginx (www-data) serves STATIC_ROOT directly (see webproxy-setup.sh) but
+# isn't in the app group, so it otherwise can't even traverse into
+# /opt/app or /opt/app/src to reach it - o+x on the two parent dirs allows
+# traversal only (not listing/reading their other contents, e.g. .env,
+# .ssh/deploy_key); o+rX on staticfiles itself makes files readable and
+# subdirectories traversable (capital X, unlike lowercase x, only applies
+# execute to directories, never to regular files).
+chmod o+x /opt/app "$APP_DIR"
+chmod -R o+rX "${APP_DIR}/staticfiles"

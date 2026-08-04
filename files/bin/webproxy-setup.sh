@@ -36,7 +36,7 @@ server {
     server_name ${fqdn};
 
     location /static/ {
-        alias /opt/app/staticfiles/;
+        alias /opt/app/src/staticfiles/;
     }
 
     location / {
