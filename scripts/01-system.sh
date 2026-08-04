@@ -21,3 +21,7 @@ if ! id -u app >/dev/null 2>&1; then
 fi
 mkdir -p /opt/app/bin /opt/app/src /opt/app/static /opt/app/log
 chown -R app:app /opt/app
+
+# Shared library scripts (lib-github-deploy-key.sh) live here - root-owned,
+# world-readable, not scoped to the app user's own directory.
+install -d -m 0755 /opt/bin
