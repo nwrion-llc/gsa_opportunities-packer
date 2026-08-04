@@ -1,0 +1,13 @@
+[Unit]
+Description=Configure nginx reverse proxy and TLS certs for this instance's hostnames
+After=network-online.target nginx.service
+Wants=network-online.target
+Requires=nginx.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/app/bin/webproxy-setup.sh
+
+[Install]
+WantedBy=multi-user.target

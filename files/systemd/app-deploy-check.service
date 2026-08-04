@@ -1,0 +1,7 @@
+[Unit]
+Description=Check for and deploy new gsa_opportunities app source commits
+After=app-config.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/app/bin/deploy-check.sh

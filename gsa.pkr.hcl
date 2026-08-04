@@ -26,7 +26,7 @@ source "googlecompute" "app" {
 
   image_name        = local.image_name
   image_family      = var.image_family
-  image_description = "Self-contained VM image for gsa_opportunities: gunicorn + Celery worker/beat + local PostgreSQL ${var.postgres_version} + Redis, all managed by systemd."
+  image_description = "Self-contained VM image for gsa_opportunities: gunicorn + Celery worker/beat + local PostgreSQL ${var.postgres_version} + Redis + nginx (reverse proxy), all managed by systemd."
   image_labels = {
     app   = "gsa-opportunities-app"
     built = replace(local.build_timestamp, "-", "")
@@ -50,23 +50,10 @@ build {
     inline = ["sudo cloud-init status --wait"]
   }
 
-  # App source upload is disabled until gsa_opportunities has actual source to
-  # bake in. The googlecompute "file" provisioner has no exclude option, so
-  # once there's an app, stage a filtered copy on the build host first (via
-  # shell-local + rsync), then upload that staged copy. Re-enable together
-  # with scripts/05-app.sh below.
-  #
-  # provisioner "shell-local" {
-  #   inline = [
-  #     "rm -rf .packer-app-src",
-  #     "rsync -a --exclude='.git' --exclude='.venv' --exclude='venv' --exclude='__pycache__' --exclude='.mypy_cache' --exclude='.pytest_cache' --exclude='.ruff_cache' --exclude='.env' --exclude='.coverage' --exclude='celerybeat-schedule' ../gsa_opportunities/ .packer-app-src/",
-  #   ]
-  # }
-  #
-  # provisioner "file" {
-  #   source      = ".packer-app-src/"
-  #   destination = "/tmp/app"
-  # }
+  # App source isn't baked into the image - bootstrap.sh clones it from
+  # GitHub at boot over SSH (read-only deploy key), see app-config.service.
+  # This also sidesteps needing cross-repo checkout auth in this repo's CI,
+  # since Packer never touches ../gsa_opportunities at all.
 
   # SFTP (unlike SCP) won't create the destination directory for a directory
   # upload, so it has to exist before the "file" provisioner below runs.
@@ -90,6 +77,21 @@ build {
   }
 
   provisioner "file" {
+    source      = "files/bin/webproxy-setup.sh"
+    destination = "/tmp/webproxy-setup.sh"
+  }
+
+  provisioner "file" {
+    source      = "files/bin/deploy-check.sh"
+    destination = "/tmp/deploy-check.sh"
+  }
+
+  provisioner "file" {
+    source      = "files/bin/lib-github-deploy-key.sh"
+    destination = "/tmp/lib-github-deploy-key.sh"
+  }
+
+  provisioner "file" {
     source      = "files/gunicorn/gunicorn.conf.py"
     destination = "/tmp/gunicorn.conf.py"
   }
@@ -100,9 +102,7 @@ build {
       "scripts/02-python.sh",
       "scripts/03-postgres.sh",
       "scripts/04-redis.sh",
-      # 05-app.sh depends on /tmp/app, which the disabled app-source upload
-      # above no longer provides - re-enable together.
-      # "scripts/05-app.sh",
+      "scripts/05-webproxy.sh",
       "scripts/06-systemd.sh",
     ]
     environment_vars = [

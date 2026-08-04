@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodically check for and deploy new gsa_opportunities app source commits
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Unit=app-deploy-check.service
+
+[Install]
+WantedBy=timers.target

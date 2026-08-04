@@ -18,7 +18,7 @@ help:
 	@echo "  validate      Validate the Packer config (needs PROJECT_ID or VAR_FILE)"
 	@echo "  build         Build the GCE image (needs PROJECT_ID or VAR_FILE)"
 	@echo "  build-debug   Build with Packer debug mode (pauses between steps, keeps VM on failure)"
-	@echo "  clean         Remove build scratch state (.packer-app-src, crash logs, manifests)"
+	@echo "  clean         Remove build scratch state (crash logs, manifests)"
 	@echo "  tag-release TAG=v1.2.3   # Tag and push a release (triggers the Production workflow)"
 	@echo ""
 	@echo "PROJECT_ID defaults to 318224876302 (nwrion-management). Override with PROJECT_ID=<gcp-project>"
@@ -46,15 +46,7 @@ shellcheck:
 
 check: fmt-check shellcheck
 
-# Packer's own static validation (run before ANY provisioner, including the
-# shell-local one that populates this) checks that file provisioner sources
-# exist, so this directory must be present even before a build/validate ever
-# runs the shell-local step — can't rely on git tracking an empty dir here,
-# since that same shell-local step does `rm -rf .packer-app-src` every run.
-.packer-app-src:
-	@mkdir -p .packer-app-src
-
-validate: fmt-check .packer-app-src
+validate: fmt-check
 	@if [ -z "$(PROJECT_ID)" ] && [ -z "$(VAR_FILE)" ]; then \
 		echo "error: no PROJECT_ID or VAR_FILE given" >&2; \
 		echo "       set PROJECT_ID=<gcp-project>, or VAR_FILE=<file>" >&2; \
@@ -62,7 +54,7 @@ validate: fmt-check .packer-app-src
 	fi
 	packer validate $(PACKER_VARS) .
 
-build: .packer-app-src
+build:
 	@if [ -z "$(PROJECT_ID)" ] && [ -z "$(VAR_FILE)" ]; then \
 		echo "error: no PROJECT_ID or VAR_FILE given" >&2; \
 		echo "       set PROJECT_ID=<gcp-project>, or VAR_FILE=<file>" >&2; \
@@ -70,7 +62,7 @@ build: .packer-app-src
 	fi
 	packer build $(PACKER_VARS) .
 
-build-debug: .packer-app-src
+build-debug:
 	@if [ -z "$(PROJECT_ID)" ] && [ -z "$(VAR_FILE)" ]; then \
 		echo "error: no PROJECT_ID or VAR_FILE given" >&2; \
 		echo "       set PROJECT_ID=<gcp-project>, or VAR_FILE=<file>" >&2; \
@@ -79,7 +71,7 @@ build-debug: .packer-app-src
 	packer build -debug $(PACKER_VARS) .
 
 clean:
-	rm -rf .packer-app-src/* crash.log packer-manifest.json
+	rm -rf crash.log packer-manifest.json
 
 tag-release:
 	@if [ "$$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then \

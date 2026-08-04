@@ -1,6 +1,4 @@
-# Packer build scratch (the Makefile creates this directory itself before
-# any packer command, so it doesn't need to be tracked in git)
-.packer-app-src/
+# Packer build scratch
 packer_cache/
 crash.log
 packer-manifest.json

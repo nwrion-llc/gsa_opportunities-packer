@@ -9,6 +9,14 @@ Type=oneshot
 RemainAfterExit=yes
 User=root
 ExecStart=/opt/app/bin/bootstrap.sh
+# Fast first-line recovery for transient failures (a network blip, a
+# momentary Secret Manager error) - persistent failures (e.g. a bad branch
+# name) are instead caught by app-deploy-check.timer, which keeps retrying
+# indefinitely every 5 minutes regardless of this giving up.
+Restart=on-failure
+RestartSec=15
+StartLimitIntervalSec=600
+StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target
