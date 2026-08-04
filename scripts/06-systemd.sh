@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-install -m 0644 -o root -g root /tmp/lib-github-deploy-key.sh /opt/bin/lib-github-deploy-key.sh
+install -m 0644 -o root -g root /tmp/lib-secrets.sh /opt/bin/lib-secrets.sh
 
 install -m 0755 -o root -g root /tmp/bootstrap.sh /opt/app/bin/bootstrap.sh
 install -m 0755 -o root -g root /tmp/pgdata-disk.sh /opt/app/bin/pgdata-disk.sh

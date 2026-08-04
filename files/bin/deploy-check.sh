@@ -23,8 +23,8 @@ DEPLOY_KEY_PATH=/opt/app/.ssh/deploy_key
 ENV_FILE=/opt/app/.env
 VENV=/opt/app/venv/bin
 
-# shellcheck source=files/bin/lib-github-deploy-key.sh
-source /opt/bin/lib-github-deploy-key.sh
+# shellcheck source=files/bin/lib-secrets.sh
+source /opt/bin/lib-secrets.sh
 
 APP_REPO_REF="$(metadata "instance/attributes/app-git-ref" || echo main)"
 

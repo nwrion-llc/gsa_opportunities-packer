@@ -15,8 +15,8 @@ ENV_FILE=/opt/app/.env
 PERSISTED_ENV_FILE=/mnt/pgdata/app.env
 VENV=/opt/app/venv/bin
 
-# shellcheck source=files/bin/lib-github-deploy-key.sh
-source /opt/bin/lib-github-deploy-key.sh
+# shellcheck source=files/bin/lib-secrets.sh
+source /opt/bin/lib-secrets.sh
 
 # Set via InstanceConfig.appGitRef in ../pulumi-infrastructure-gcp - defaults
 # to "main" if the metadata key is unset.
@@ -72,6 +72,13 @@ CELERY_RESULT_BACKEND=redis://localhost:6379/1
 EOF
   install -m 0600 -o root -g root "$ENV_FILE" "$PERSISTED_ENV_FILE"
 fi
+# --- Additional config layered on top (never replaces the above): OAuth
+# client credentials / JWT signing key, if this instance has
+# includeOauthEnv set (see InstanceConfig in ../pulumi-infrastructure-gcp).
+if OAUTH_ENV="$(fetch_secret_by_metadata_key "oauth-env-secret-id")"; then
+  printf '\n%s\n' "$OAUTH_ENV" >> "$ENV_FILE"
+fi
+
 chown app:app "$ENV_FILE"
 chmod 600 "$ENV_FILE"
 

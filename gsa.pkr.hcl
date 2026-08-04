@@ -87,8 +87,8 @@ build {
   }
 
   provisioner "file" {
-    source      = "files/bin/lib-github-deploy-key.sh"
-    destination = "/tmp/lib-github-deploy-key.sh"
+    source      = "files/bin/lib-secrets.sh"
+    destination = "/tmp/lib-secrets.sh"
   }
 
   provisioner "file" {
