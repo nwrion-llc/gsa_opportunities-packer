@@ -8,7 +8,15 @@ User=app
 Group=app
 WorkingDirectory=/opt/app/src
 EnvironmentFile=/opt/app/.env
-ExecStart=/opt/app/venv/bin/celery -A config beat -l info --pidfile=
+# --schedule points outside WorkingDirectory on purpose: both bootstrap.sh
+# (every boot) and deploy-check.sh (every 5min poll) rm -rf and re-clone
+# /opt/app/src wholesale. celery's default --schedule path is relative to
+# the CWD, i.e. inside that directory - every deploy or reboot was wiping
+# beat's on-disk "when did each periodic task last run" state, which made
+# crontab-scheduled tasks (e.g. the once-daily SAM.gov sync) look overdue
+# and refire immediately after every redeploy instead of waiting for their
+# actual scheduled time. /opt/app/var is never touched by either script.
+ExecStart=/opt/app/venv/bin/celery -A config beat -l info --pidfile= --schedule=/opt/app/var/celerybeat-schedule
 Restart=always
 RestartSec=3
 

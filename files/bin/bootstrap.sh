@@ -22,6 +22,15 @@ source /opt/bin/lib-secrets.sh
 # to "main" if the metadata key is unset.
 APP_REPO_REF="$(metadata "instance/attributes/app-git-ref" || echo main)"
 
+# celery-beat.service points --schedule here rather than the default (inside
+# WorkingDirectory=/opt/app/src) - that directory gets rm -rf'd and re-cloned
+# below on every boot, and again by deploy-check.sh on every code update, so
+# celery's on-disk "last run" state needs to live somewhere neither script
+# ever touches, or a crontab-scheduled task (e.g. the daily SAM.gov sync)
+# looks overdue and refires immediately after every redeploy.
+mkdir -p /opt/app/var
+chown app:app /opt/app/var
+
 # --- App source: clone fresh each boot (see deploy-check.sh for
 # subsequent-boot updates without a full reboot).
 GIT_SSH_COMMAND="$(setup_deploy_key "$DEPLOY_KEY_PATH")"
