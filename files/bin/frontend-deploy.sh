@@ -17,11 +17,12 @@ source /opt/bin/lib-secrets.sh # also provides metadata()
 # in ../pulumi-infrastructure-gcp. Both repos always deploy the same branch.
 FRONTEND_REPO_REF="$(metadata "instance/attributes/app-git-ref" || echo main)"
 
-# Reuses the same read-only deploy key already granted to this instance for
-# gsa_opportunities (see bootstrap.sh) - registered as a second, independent
-# deploy key directly on the gsa_opportunities_frontend repo (GitHub deploy
-# keys are per-repo; the same keypair can be added to more than one repo).
-GIT_SSH_COMMAND="$(setup_deploy_key "$DEPLOY_KEY_PATH")"
+# A separate deploy key from gsa_opportunities' own (see bootstrap.sh) -
+# GitHub deploy keys are unique per public key across all of GitHub, so the
+# two repos each need their own keypair (see 'frontend-deploy-key-secret-id',
+# granted via InstanceConfig.githubFrontendTokenAccess in
+# ../pulumi-infrastructure-gcp).
+GIT_SSH_COMMAND="$(setup_deploy_key "$DEPLOY_KEY_PATH" "frontend-deploy-key-secret-id")"
 export GIT_SSH_COMMAND
 chown -R frontend:frontend "$(dirname "$DEPLOY_KEY_PATH")"
 

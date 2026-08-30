@@ -29,14 +29,18 @@ fetch_secret_by_metadata_key() {
   fetch_secret "$secret_id"
 }
 
-# Writes the GitHub deploy key to a private-mode file and prints a
+# Writes a GitHub deploy key to a private-mode file and prints a
 # GIT_SSH_COMMAND value pointed at it, with host-key checking relaxed to
 # accept-new (first connection trusts GitHub's key rather than failing
-# non-interactively).
+# non-interactively). metadata_key defaults to gsa_opportunities' own deploy
+# key; frontend-deploy.sh passes 'frontend-deploy-key-secret-id' for its own,
+# separate one (GitHub deploy keys are unique per public key across all of
+# GitHub, so the two repos can't share a single keypair - see
+# ../pulumi-infrastructure-gcp/infra/secrets.py's DeployKey docstring).
 setup_deploy_key() {
-  local key_path="$1"
+  local key_path="$1" metadata_key="${2:-github-deploy-key-secret-id}"
   install -d -m 0700 "$(dirname "$key_path")"
-  fetch_secret_by_metadata_key "github-deploy-key-secret-id" > "$key_path"
+  fetch_secret_by_metadata_key "$metadata_key" > "$key_path"
   chmod 600 "$key_path"
   printf 'ssh -i %s -o StrictHostKeyChecking=accept-new' "$key_path"
 }

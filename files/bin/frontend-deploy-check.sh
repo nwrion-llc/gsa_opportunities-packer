@@ -27,7 +27,7 @@ fi
 
 CURRENT_SHA="$(sudo -u frontend git -C "$FRONTEND_DIR" rev-parse HEAD 2>/dev/null || echo none)"
 
-GIT_SSH_COMMAND="$(setup_deploy_key "$DEPLOY_KEY_PATH")"
+GIT_SSH_COMMAND="$(setup_deploy_key "$DEPLOY_KEY_PATH" "frontend-deploy-key-secret-id")"
 export GIT_SSH_COMMAND
 chown -R frontend:frontend "$(dirname "$DEPLOY_KEY_PATH")"
 REMOTE_SHA="$(git ls-remote "$FRONTEND_REPO_URL" "refs/heads/${FRONTEND_REPO_REF}" | cut -f1)"
