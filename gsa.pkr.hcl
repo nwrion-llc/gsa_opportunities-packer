@@ -26,7 +26,7 @@ source "googlecompute" "app" {
 
   image_name        = local.image_name
   image_family      = var.image_family
-  image_description = "Self-contained VM image for gsa_opportunities: gunicorn + Celery worker/beat + local PostgreSQL ${var.postgres_version} + Redis + nginx (reverse proxy), all managed by systemd."
+  image_description = "Self-contained VM image for gsa_opportunities: gunicorn + Celery worker/beat + local PostgreSQL ${var.postgres_version} + Redis + nginx (reverse proxy to gunicorn on the api.* hostname, static gsa_opportunities_frontend build on app.*), all managed by systemd."
   image_labels = {
     app   = "gsa-opportunities-app"
     built = replace(local.build_timestamp, "-", "")
@@ -50,10 +50,13 @@ build {
     inline = ["sudo cloud-init status --wait"]
   }
 
-  # App source isn't baked into the image - bootstrap.sh clones it from
-  # GitHub at boot over SSH (read-only deploy key), see app-config.service.
+  # Neither app source is baked into the image - bootstrap.sh and
+  # frontend-deploy.sh each clone their own repo from GitHub at boot over SSH
+  # (the same read-only deploy key, registered on both repos - see
+  # frontend-deploy.sh), see app-config.service/frontend-deploy.service.
   # This also sidesteps needing cross-repo checkout auth in this repo's CI,
-  # since Packer never touches ../gsa_opportunities at all.
+  # since Packer never touches ../gsa_opportunities or
+  # ../gsa_opportunities_frontend at all.
 
   # SFTP (unlike SCP) won't create the destination directory for a directory
   # upload, so it has to exist before the "file" provisioner below runs.
@@ -92,6 +95,16 @@ build {
   }
 
   provisioner "file" {
+    source      = "files/bin/frontend-deploy.sh"
+    destination = "/tmp/frontend-deploy.sh"
+  }
+
+  provisioner "file" {
+    source      = "files/bin/frontend-deploy-check.sh"
+    destination = "/tmp/frontend-deploy-check.sh"
+  }
+
+  provisioner "file" {
     source      = "files/gunicorn/gunicorn.conf.py"
     destination = "/tmp/gunicorn.conf.py"
   }
@@ -99,6 +112,7 @@ build {
   provisioner "shell" {
     scripts = [
       "scripts/01-system.sh",
+      "scripts/02-node.sh",
       "scripts/02-python.sh",
       "scripts/03-postgres.sh",
       "scripts/04-redis.sh",

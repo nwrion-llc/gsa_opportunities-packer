@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodically check for and deploy new gsa_opportunities_frontend commits
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Unit=frontend-deploy-check.service
+
+[Install]
+WantedBy=timers.target

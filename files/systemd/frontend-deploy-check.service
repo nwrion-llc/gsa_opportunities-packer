@@ -1,0 +1,7 @@
+[Unit]
+Description=Check for and deploy new gsa_opportunities_frontend commits
+After=frontend-deploy.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/frontend/bin/frontend-deploy-check.sh

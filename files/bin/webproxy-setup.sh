@@ -7,11 +7,14 @@
 # via certbot's nginx plugin. Safe to re-run: certbot skips domains that
 # already have a valid certificate instead of re-issuing.
 #
-# Every hostname (api.*, app.*) proxies to the same gunicorn backend and
-# serves /static/ directly from Django's STATIC_ROOT - there's no separate
-# frontend build here, Django's own templates/static serve that role (unlike
-# ../../gratefulforu/api-packer, which splits "api" vs "app" into a reverse
-# proxy vs. a static frontend bundle).
+# Known roles:
+#   api - reverse proxy to gunicorn on 127.0.0.1:8000, serving /static/
+#         directly from Django's STATIC_ROOT. Also where Google login
+#         (django-allauth) and /admin/ live - the app role below can't serve
+#         those (its SPA fallback would 404 them).
+#   app - serves gsa_opportunities_frontend's static build (see
+#         frontend-deploy.sh), with /api/* proxied to gunicorn - same split
+#         the frontend's own Vite dev server proxy uses locally.
 set -euo pipefail
 
 METADATA_ROOT="http://metadata.google.internal/computeMetadata/v1"
@@ -30,7 +33,9 @@ write_site() {
   local role="$1" fqdn="$2"
   local conf="/etc/nginx/sites-available/${role}.conf"
 
-  cat > "$conf" <<EOF
+  case "$role" in
+    api)
+      cat > "$conf" <<EOF
 server {
     listen 80;
     server_name ${fqdn};
@@ -48,6 +53,35 @@ server {
     }
 }
 EOF
+      ;;
+    app)
+      cat > "$conf" <<EOF
+server {
+    listen 80;
+    server_name ${fqdn};
+
+    root /opt/frontend/src/dist;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/api/;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location / {
+        try_files \$uri /index.html;
+    }
+}
+EOF
+      ;;
+    *)
+      echo "webproxy-setup: unknown hostname role '${role}' (fqdn ${fqdn}); skipping" >&2
+      return
+      ;;
+  esac
 
   ln -sf "$conf" "/etc/nginx/sites-enabled/${role}.conf"
 }
