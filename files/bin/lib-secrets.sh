@@ -41,6 +41,14 @@ setup_deploy_key() {
   local key_path="$1" metadata_key="${2:-github-deploy-key-secret-id}"
   install -d -m 0700 "$(dirname "$key_path")"
   fetch_secret_by_metadata_key "$metadata_key" > "$key_path"
+  # OpenSSH's key parser (via libcrypto) requires a trailing newline after
+  # the "-----END ... KEY-----" footer line, but Pulumi's YAML-backed secret
+  # config storage silently strips a value's trailing newline on write - so
+  # the fetched content can't be trusted to still have it. $(tail -c1 ...)
+  # itself strips a trailing newline from its own output, so this is empty
+  # (no-op) when one is already present and non-empty (append one) when it's
+  # missing - cheap and idempotent either way.
+  [ -n "$(tail -c 1 "$key_path")" ] && printf '\n' >> "$key_path"
   chmod 600 "$key_path"
   printf 'ssh -i %s -o StrictHostKeyChecking=accept-new' "$key_path"
 }
