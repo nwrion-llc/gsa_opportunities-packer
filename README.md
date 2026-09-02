@@ -130,8 +130,8 @@ GCP via Workload Identity Federation and runs `make check` (fmt-check +
 shellcheck), then `make validate` (PRs) or `make build` (pushes/tags) against
 the `prod` GitHub Environment.
 
-The `prod` GitHub Environment needs these repo secrets configured
-(Settings → Environments):
+The `prod` GitHub Environment needs these Actions variables configured
+(Settings → Environments → `prod` → Environment variables):
 
 - `GCP_WORKLOAD_IDENTITY_PROVIDER`
 - `GCP_CI_SERVICE_ACCOUNT`
