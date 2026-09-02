@@ -24,7 +24,7 @@ no dev/prod split.
   `app-deploy-check.timer` (self-healing redeploy checks)
 
 **App source isn't baked into the image.** `bootstrap.sh` clones
-`nwrion-llc/gsa_pportunities` from GitHub at boot, over SSH using a read-only
+`FedRank/gsa_opportunities` from GitHub at boot, over SSH using a read-only
 deploy key fetched from Secret Manager (see
 `../pulumi-infrastructure-gcp/infra/secrets.py`). This means a normal `git
 push` to the tracked branch (`app-git-ref` instance metadata, default `main`)
@@ -140,7 +140,7 @@ The `prod` GitHub Environment needs these repo secrets configured
 
 The workload identity pool/provider and CI service account (`pulumi-ci@nwrion-management.iam.gserviceaccount.com`)
 are provisioned by `../pulumi-infrastructure-gcp`'s `infra/github_oidc.py`
-module, which trusts both this repo (`nwrion-llc/gsa_opportunities-packer`)
+module, which trusts both this repo (`FedRank/gsa_opportunities-packer`)
 and `nwrion-llc/pulumi-infrastructure-gcp` for the `prod` GitHub Environment.
 After running `pulumi up` there, read the actual values with:
 

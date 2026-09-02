@@ -12,7 +12,7 @@
 set -euo pipefail
 
 FRONTEND_DIR=/opt/frontend/src
-FRONTEND_REPO_URL="git@github.com:nwrion-llc/gsa_opportunities_frontend.git"
+FRONTEND_REPO_URL="git@github.com:FedRank/gsa_opportunities_frontend.git"
 DEPLOY_KEY_PATH=/opt/frontend/.ssh/deploy_key
 
 # shellcheck source=files/bin/lib-secrets.sh

@@ -18,7 +18,7 @@
 set -euo pipefail
 
 APP_DIR=/opt/app/src
-APP_REPO_URL="git@github.com:nwrion-llc/gsa_pportunities.git"
+APP_REPO_URL="git@github.com:FedRank/gsa_opportunities.git"
 DEPLOY_KEY_PATH=/opt/app/.ssh/deploy_key
 ENV_FILE=/opt/app/.env
 VENV=/opt/app/venv/bin
