@@ -12,9 +12,11 @@
 #         directly from Django's STATIC_ROOT. Also where Google login
 #         (django-allauth) and /admin/ live - the app role below can't serve
 #         those (its SPA fallback would 404 them).
-#   app - serves gsa_opportunities_frontend's static build (see
-#         frontend-deploy.sh), with /api/* proxied to gunicorn - same split
-#         the frontend's own Vite dev server proxy uses locally.
+#   app - 301-redirects everything to https://app.fedrank.com, the app's
+#         new home (a separate, already-live deployment outside this repo)
+#         - this instance no longer serves the SPA under this hostname.
+#         Still needs its own nginx server block + TLS cert so the
+#         redirect itself is served over HTTPS for this hostname.
 set -euo pipefail
 
 METADATA_ROOT="http://metadata.google.internal/computeMetadata/v1"
@@ -60,19 +62,8 @@ server {
     listen 80;
     server_name ${fqdn};
 
-    root /opt/frontend/src/dist;
-    index index.html;
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:8000/api/;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-
     location / {
-        try_files \$uri /index.html;
+        return 301 https://app.fedrank.com\$request_uri;
     }
 }
 EOF
